@@ -1,3 +1,4 @@
+#EnterYourApiAndAccountDetails
 {
     "openai_api_key": "",
     "twitter_username": "",
@@ -5,7 +6,7 @@
     "path_chromedriver": "",
 
     "facebook_email": "",
-    "facebook_password": "sectumsempra",
+    "facebook_password": "",
 
 
     "linkedin_email": "",
