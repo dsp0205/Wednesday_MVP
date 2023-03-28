@@ -1,14 +1,14 @@
 {
-    "openai_api_key": "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",
-    "twitter_username": "Wednesday2903",
-    "twitter_password": "avadakedavra",
-    "path_chromedriver": "C:/ChromeDriver/chromedriver.exe",
+    "openai_api_key": "",
+    "twitter_username": "",
+    "twitter_password": "",
+    "path_chromedriver": "",
 
-    "facebook_email": "deeppimpale0806@gmail.com",
+    "facebook_email": "",
     "facebook_password": "sectumsempra",
 
 
-    "linkedin_email": "deeppimpale0806@gmail.com",
-    "linkedin_password": "deep@0205"
+    "linkedin_email": "",
+    "linkedin_password": ""
        
 }
