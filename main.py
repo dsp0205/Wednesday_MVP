@@ -1,3 +1,4 @@
+# Import necessary libraries
 import json
 import openai
 import os
@@ -28,23 +29,24 @@ import pywinauto
 from pywinauto.application import Application
 
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
+# Load OpenAI API key and ChromeDriver path from config file
 with open('config.json') as f:
     config = json.load(f)
 
 openai.api_key = config['openai_api_key']
 
 chromedriver_path = config['path_chromedriver']
-
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--incognito")
 
-chromedriver_path = 'path_chromedriver'
+# Configure ChromeDriver to run in incognito mode
+chrome_options.add_argument("--incognito")
 chromedriver_service = ChromeDriverService(executable_path=chromedriver_path)
 
+# Initialize the webdriver
 driver = webdriver.Chrome(service=chromedriver_service, options=chrome_options)
 
+
+# Function to record audio using PyAudio
 def record_audio(duration, sample_rate):
     pa = pyaudio.PyAudio()
     stream = pa.open(format=pyaudio.paInt16,
@@ -72,6 +74,8 @@ def record_audio(duration, sample_rate):
     wav_buffer.seek(0)
     return wav_buffer
 
+
+# Function to transcribe audio using OpenAI's Whisper API
 def transcribe_audio(audio_data):
     openai.api_key = config['openai_api_key']
 
@@ -94,6 +98,8 @@ def transcribe_audio(audio_data):
     
     os.remove("temp_audio.wav")
 
+
+# Function to get text from a screenshot using Tesseract OCR
 def get_screenshot_text():
     screenshot = pyautogui.screenshot()
     screenshot.save("screenshot.png")
@@ -105,6 +111,8 @@ def get_screenshot_text():
     os.remove("screenshot.png")
     return text
 
+
+# Function to click on a specific text on screen using PyAutoGUI
 def click_on_screen(text_to_find):
     try:
         location = pyautogui.locateOnScreen(text_to_find)
@@ -116,6 +124,181 @@ def click_on_screen(text_to_find):
     except Exception as e:
         print("Error clicking on screen:", e)
 
+
+# Function to search for images on Google Images
+def search_for_images(search_term):
+    driver.get(f"https://www.google.com/search?q={search_term}&tbm=isch")
+
+
+# Function to open a website
+def open_website(url):
+    driver.get(url)
+
+
+# Function to log in to LinkedIn
+def login_linkedin(email, password):
+    driver.get("https://www.linkedin.com/login")
+
+    try:
+        email_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'username'))
+        )
+    except NoSuchElementException:
+        print("Error: Unable to locate the email field.")
+        return
+
+    print("Entering email...")
+    email_field.send_keys(email)
+
+    try:
+        password_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'password'))
+        )
+    except NoSuchElementException:
+        print("Error: Unable to locate the password field.")
+        return
+
+    print("Entering password...")
+    password_field.send_keys(password)
+
+    try:
+        login_button = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'button[type="submit"]'))
+        )
+    except NoSuchElementException:
+        print("Error: Unable to locate the login button.")
+        return
+
+    print("Clicking login button...")
+    login_button.click()
+    time.sleep(5)
+
+
+# Function to search for jobs on LinkedIn
+def search_linkedin_jobs(job_title):
+    driver.get("https://www.linkedin.com/jobs")
+
+    try:
+        search_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'input[aria-label="Search by title, skill or company"]'))
+        )
+    except NoSuchElementException:
+        print("Error: Unable to locate the search field.")
+        return
+
+    print("Entering search query...")
+    search_field.send_keys(job_title)
+    search_field.send_keys(Keys.RETURN)
+    time.sleep(5)
+
+
+# Function to log in to Twitter
+def login_twitter(username, password):
+    driver.get("https://twitter.com/i/flow/login")
+    
+    try:
+        username_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'input[name="text"]'))
+        )
+    except NoSuchElementException:
+        print("Error: Unable to locate the username field.")
+        return
+
+    print("Entering username...")
+    username_field.send_keys(username)
+    username_field.send_keys(Keys.RETURN)
+    time.sleep(2)
+
+    try:
+        password_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'input[name="password"]'))
+        )
+    except NoSuchElementException:
+        print("Error: Unable to locate the password field.")
+        return
+
+    print("Entering password...")
+    password_field.send_keys(password)
+    password_field.send_keys(Keys.RETURN)
+    time.sleep(5)
+
+    try:
+        tweet_box = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.XPATH, '//div[@role="textbox"]'))
+        )
+        tweet_box.send_keys(Keys.RETURN)
+    except NoSuchElementException as e:
+        print("Error: Unable to locate the tweet box or the tweet button.")
+        print(e)
+
+
+
+# Function to post a tweet on Twitter
+def tweet(content):
+    try:
+        tweet_box = driver.find_element(By.XPATH, '//div[@aria-label="Tweet text"]')
+        tweet_box.send_keys(content)
+        time.sleep(1)
+
+        tweet_button = driver.find_element(By.XPATH, '//div[@data-testid="tweetButtonInline"]')
+        tweet_button.click()
+        time.sleep(2)
+    except NoSuchElementException as e:
+        print("Error: Unable to locate the tweet box or the tweet button.")
+        print(e)
+
+
+# Function to generate a tweet using OpenAI's GPT-3
+def generate_tweet(topic):
+    prompt = f"Write an informative and engaging tweet about {topic}. The tweet should raise awareness and provide insights about the issue:"
+    
+    response = openai.Completion.create(
+        engine="davinci",
+        prompt=prompt,
+        max_tokens=100,
+        n=1,
+        stop=None,
+        temperature=0.7,
+    )
+
+    generated_tweet = response.choices[0].text.strip()
+    return generated_tweet
+
+
+
+# Function to generate a text using OpenAI's GPT-3
+def generate_text(topic):
+    prompt = f"Write a well-structured and informative paragraph about {topic}:"
+
+    response = openai.Completion.create(
+        engine='text-davinci-002',
+        prompt=prompt,
+        max_tokens=1024,
+        n=1,
+        stop=None,
+        temperature=0.7
+    )
+
+    return response.choices[0].text.strip()
+
+
+# Function to write the generated text in a Word document
+def write_about_in_word(topic, generated_text):
+    word = win32.gencache.EnsureDispatch("Word.Application")
+    word.Visible = True
+    doc = word.Documents.Add()
+    range = doc.Range()
+    range.InsertAfter(f"Here's some information about {topic}:")
+    range.InsertParagraphAfter()
+    range.InsertAfter(generated_text)
+    doc.SaveAs("output.docx")
+  
+    app = Application().connect(path=word.Path)
+    app.top_window().maximize()
+    
+
+
+# Function to generate a command using OpenAI's GPT-3
 def generate_command(prompt):
     open_website_pattern = re.compile(r'open\s+(\w+)', re.IGNORECASE)
     match = open_website_pattern.match(prompt)
@@ -134,7 +317,7 @@ def generate_command(prompt):
     tweet_about_pattern = re.compile(r'tweet\s+about\s+(.+)', re.IGNORECASE)
     match = tweet_about_pattern.match(prompt)
     if match:
-        topic = match.group(1).strip(" .,")  # remove any trailing spaces or punctuation
+        topic = match.group(1).strip(" .,")  
         generated_tweet = generate_tweet(topic)
         return "tweet_about", generated_tweet
 
@@ -181,120 +364,7 @@ def generate_command(prompt):
     return command
 
 
-
-
-
-def search_for_images(search_term):
-    driver.get(f"https://www.google.com/search?q={search_term}&tbm=isch")
-
-def open_website(url):
-    driver.get(url)
-
-
-
-def login_twitter(username, password):
-    driver.get("https://twitter.com/i/flow/login")
-    
-    try:
-        username_field = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'input[name="text"]'))
-        )
-    except NoSuchElementException:
-        print("Error: Unable to locate the username field.")
-        return
-
-    print("Entering username...")
-    username_field.send_keys(username)
-    username_field.send_keys(Keys.RETURN)
-    time.sleep(2)
-
-    try:
-        password_field = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'input[name="password"]'))
-        )
-    except NoSuchElementException:
-        print("Error: Unable to locate the password field.")
-        return
-
-    print("Entering password...")
-    password_field.send_keys(password)
-    password_field.send_keys(Keys.RETURN)
-    time.sleep(5)
-
-    try:
-        tweet_box = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.XPATH, '//div[@role="textbox"]'))
-        )
-        tweet_box.send_keys(Keys.RETURN)
-    except NoSuchElementException as e:
-        print("Error: Unable to locate the tweet box or the tweet button.")
-        print(e)
-
-
-
-def tweet(content):
-    try:
-        tweet_box = driver.find_element(By.XPATH, '//div[@aria-label="Tweet text"]')
-        tweet_box.send_keys(content)
-        time.sleep(1)
-
-        tweet_button = driver.find_element(By.XPATH, '//div[@data-testid="tweetButtonInline"]')
-        tweet_button.click()
-        time.sleep(2)
-    except NoSuchElementException as e:
-        print("Error: Unable to locate the tweet box or the tweet button.")
-        print(e)
-
-def generate_tweet(topic):
-    prompt = f"Write an informative and engaging tweet about {topic}. The tweet should raise awareness and provide insights about the issue:"
-    
-    response = openai.Completion.create(
-        engine="davinci",
-        prompt=prompt,
-        max_tokens=100,
-        n=1,
-        stop=None,
-        temperature=0.7,
-    )
-
-    generated_tweet = response.choices[0].text.strip()
-    return generated_tweet
-
-def generate_text(topic):
-    prompt = f"Write a well-structured and informative paragraph about {topic}:"
-
-    response = openai.Completion.create(
-        engine='text-davinci-002',
-        prompt=prompt,
-        max_tokens=1024,
-        n=1,
-        stop=None,
-        temperature=0.7
-    )
-
-    return response.choices[0].text.strip()
-
-
-
-def write_about_in_word(topic, generated_text):
-    word = win32.gencache.EnsureDispatch("Word.Application")
-    word.Visible = True
-    doc = word.Documents.Add()
-    range = doc.Range()
-    range.InsertAfter(f"Here's some information about {topic}:")
-    range.InsertParagraphAfter()
-    range.InsertAfter(generated_text)
-    doc.SaveAs("output.docx")
-    # doc.Close()  # Remove this line to keep the document open
-
-    # Add the following lines to maximize the MS Word window
-    app = Application().connect(path=word.Path)
-    app.top_window().maximize()
-    
-
-
-
-
+# Function to execute the generated command
 def execute_command(command):
     if isinstance(command, tuple):
         if command[0] == "start":
@@ -331,61 +401,9 @@ def execute_command(command):
         login_linkedin(config['linkedin_email'], config['linkedin_password'])
         search_linkedin_jobs(job_title)
 
-def login_linkedin(email, password):
-    driver.get("https://www.linkedin.com/login")
-
-    try:
-        email_field = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'username'))
-        )
-    except NoSuchElementException:
-        print("Error: Unable to locate the email field.")
-        return
-
-    print("Entering email...")
-    email_field.send_keys(email)
-
-    try:
-        password_field = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'password'))
-        )
-    except NoSuchElementException:
-        print("Error: Unable to locate the password field.")
-        return
-
-    print("Entering password...")
-    password_field.send_keys(password)
-
-    try:
-        login_button = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'button[type="submit"]'))
-        )
-    except NoSuchElementException:
-        print("Error: Unable to locate the login button.")
-        return
-
-    print("Clicking login button...")
-    login_button.click()
-    time.sleep(5)
-
-def search_linkedin_jobs(job_title):
-    driver.get("https://www.linkedin.com/jobs")
-
-    try:
-        search_field = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'input[aria-label="Search by title, skill or company"]'))
-        )
-    except NoSuchElementException:
-        print("Error: Unable to locate the search field.")
-        return
-
-    print("Entering search query...")
-    search_field.send_keys(job_title)
-    search_field.send_keys(Keys.RETURN)
-    time.sleep(5)
 
 
-
+# Main function to listen for commands and execute them
 def main():
     print("Listening for commands...")
     sample_rate = 16000
@@ -426,7 +444,7 @@ def main():
                     else:
                         execute_command(command)
 
-                    # Pause listening after successfully executing the command
+                 
                     listen = False
                 else:
                     print("No transcription found. Listening again...")
