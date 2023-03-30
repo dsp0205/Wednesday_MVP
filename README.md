@@ -45,3 +45,8 @@ https://user-images.githubusercontent.com/55679683/228866274-825f257b-4558-4d3e-
 
 https://user-images.githubusercontent.com/55679683/228866282-11944752-174c-4b97-bd5f-6815efa1cb39.mp4
 
+
+## Contributing
+
+Contributions are welcome! If you have an idea for a new feature or want to fix a bug, please submit a pull request.
+
