@@ -24,6 +24,14 @@
 
 10. Get text from a screenshot using Tesseract OCR
 
+## Instructions
+
+To run the voice assistant, make sure you have the necessary libraries installed and API keys for OpenAI and other services. Run the main function in the script, which will start listening for voice commands. When a command is detected, the voice assistant will generate and execute the appropriate command. The voice assistant will stop listening for commands when it hears the keyword "stop listening."
+
+Make sure to update the 'config.json' file with your OpenAI API key, ChromeDriver path, and credentials for LinkedIn and Twitter before running the script.
+
+Please note that the script might require some adjustments depending on your specific setup and requirements.
+
 
 ## Video
 
